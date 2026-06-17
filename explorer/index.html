@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Semantic Arena — One-Clue Explorer (prototype)</title>
+<title>Semantic Arena — One-Clue Explorer</title>
 <style>
   :root {
     --bg:#0f1115; --panel:#171a21; --ink:#e7e9ee; --mut:#8b90a0; --line:#2a2f3a;
@@ -22,7 +22,7 @@
   .board { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
   .tile { background:var(--panel); border:1.5px solid var(--line); border-radius:10px;
     padding:12px 6px; text-align:center; user-select:none; font-size:13px;
-    transition:border-color .08s, background .08s; position:relative; }
+    transition:border-color .08s, background .08s; position:relative; overflow-wrap:break-word; }
   .tile.click { cursor:pointer; }
   .tile.click:hover { border-color:#3a4252; }
   .tile.sel  { border-color:var(--sel); background:#16233b; }
@@ -49,6 +49,19 @@
   .card-head { margin:0 0 14px; }
   .pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:20px;
     border:1px solid var(--line); color:var(--mut); margin-left:8px; vertical-align:middle; }
+  .foot { margin-top:24px; padding-top:14px; border-top:1px solid var(--line);
+    color:var(--mut); font-size:13px; }
+  .foot a { color:#cbd2e0; text-decoration:none; }
+  .foot a:hover { text-decoration:underline; }
+  @media (max-width:520px) {
+    .wrap { padding:18px 12px 44px; }
+    .board { gap:5px; }
+    .tile { padding:9px 3px; font-size:11px; }
+    .clue { font-size:24px; }
+    h1 { font-size:19px; }
+    .tabs { gap:2px; }
+    .tab { padding:8px 9px; font-size:13px; }
+  }
 </style>
 </head>
 <body>
@@ -97,6 +110,13 @@
       <b style="color:var(--miss)">amber</b> intended word the reader missed
     </p>
   </div>
+
+  <footer class="foot">
+    From the writeup:
+    <a href="https://brianhliou.com/posts/one-word-six-cards/">One word, six cards</a> ·
+    <a href="https://brianhliou.com/assets/posts/one-word-six-cards/one-clue-reference.pdf">the paper (PDF)</a> ·
+    <a href="https://github.com/brianhliou/semantic-arena-explorer">code &amp; data</a>
+  </footer>
 </div>
 
 <script>
