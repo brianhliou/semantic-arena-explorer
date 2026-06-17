@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Semantic Arena — One-Clue Explorer (prototype)</title>
+<style>
+  :root {
+    --bg:#0f1115; --panel:#171a21; --ink:#e7e9ee; --mut:#8b90a0; --line:#2a2f3a;
+    --sel:#3b82f6; --good:#22c55e; --bad:#ef4444; --miss:#f59e0b;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  .sub { color:var(--mut); margin:0 0 18px; }
+  .tabs { display:flex; gap:6px; margin-bottom:20px; border-bottom:1px solid var(--line); }
+  .tab { padding:9px 14px; cursor:pointer; color:var(--mut); font-size:14px;
+    border-bottom:2px solid transparent; margin-bottom:-1px; }
+  .tab.on { color:var(--ink); border-bottom-color:var(--sel); }
+  .board { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .tile { background:var(--panel); border:1.5px solid var(--line); border-radius:10px;
+    padding:12px 6px; text-align:center; user-select:none; font-size:13px;
+    transition:border-color .08s, background .08s; position:relative; }
+  .tile.click { cursor:pointer; }
+  .tile.click:hover { border-color:#3a4252; }
+  .tile.sel  { border-color:var(--sel); background:#16233b; }
+  .tile.good { border-color:var(--good); background:#11231a; }
+  .tile.bad  { border-color:var(--bad); background:#2a1417; }
+  .tile.miss { border-color:var(--miss); background:#291f10; }
+  .tag { position:absolute; top:4px; right:6px; font-size:10px; color:var(--mut); }
+  .controls { display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; align-items:center; }
+  button { background:var(--panel); color:var(--ink); border:1px solid var(--line);
+    border-radius:8px; padding:8px 14px; cursor:pointer; font-size:13px; }
+  button:hover { border-color:#3a4252; }
+  button.primary { border-color:var(--sel); }
+  .result { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:18px 20px; margin-top:8px; min-height:92px; }
+  .verdict { font-size:13px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
+  .verdict.ok { color:var(--good); } .verdict.no { color:var(--bad); }
+  .clue { font-size:30px; font-weight:700; margin:6px 0 2px; }
+  .meta { color:var(--mut); font-size:13px; }
+  .legend { color:var(--mut); font-size:12px; margin-top:18px; }
+  .legend b { font-weight:600; }
+  code { color:#cbd2e0; }
+  .nav { color:var(--mut); font-size:13px; margin-left:auto; }
+  .hidden { display:none; }
+  .card-head { margin:0 0 14px; }
+  .pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:20px;
+    border:1px solid var(--line); color:var(--mut); margin-left:8px; vertical-align:middle; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>One-clue explorer</h1>
+  <p class="sub">A 25-word board, a hidden subset, and one legal clue word. What can it communicate?</p>
+
+  <div class="tabs">
+    <div class="tab on" data-view="explore">Explore the wall</div>
+    <div class="tab" data-view="twist">Decoder-perfect, reader fails</div>
+  </div>
+
+  <!-- VIEW 1: interactive -->
+  <div id="explore">
+    <p class="meta">Click words to pick a hidden target subset. The browser runs the
+    embedding-rank decoder over every legal clue and shows the best one.</p>
+    <div class="board" id="board"></div>
+    <div class="controls">
+      <button id="key">Select the 9-card key</button>
+      <button id="clear">Clear</button>
+    </div>
+    <div class="result" id="result"><div class="meta">Select one or more words.</div></div>
+    <p class="legend">
+      <b style="color:var(--sel)">blue</b> = your targets ·
+      <b style="color:var(--good)">green</b> = decoder picks it (correct) ·
+      <b style="color:var(--bad)">red</b> = decoder picks it instead (intruder) ·
+      <b style="color:var(--miss)">amber</b> = your target the decoder misses
+    </p>
+  </div>
+
+  <!-- VIEW 2: dissociation replay -->
+  <div id="twist" class="hidden">
+    <div class="card-head">
+      <span class="meta" id="t-intro"></span>
+    </div>
+    <div class="board" id="t-board"></div>
+    <div class="controls">
+      <button id="t-reveal" class="primary">Reveal what the reader guessed</button>
+      <span class="nav"><button id="t-prev">‹</button> <span id="t-count"></span> <button id="t-next">›</button></span>
+    </div>
+    <div class="result" id="t-result"></div>
+    <p class="legend">
+      <b style="color:var(--sel)">blue</b> = the set the decoder says this clue recovers ·
+      after reveal: <b style="color:var(--good)">green</b> hit ·
+      <b style="color:var(--bad)">red</b> reader's wrong pick ·
+      <b style="color:var(--miss)">amber</b> intended word the reader missed
+    </p>
+  </div>
+</div>
+
+<script>
+let DATA=null;
+
+/* ---------- shared board renderer ---------- */
+function makeBoard(el, words, onClick){
+  el.innerHTML='';
+  words.forEach((w,i)=>{
+    const t=document.createElement('div');
+    t.className='tile'+(onClick?' click':'');
+    t.innerHTML=`<span class="tag"></span>${w}`;
+    if(onClick) t.onclick=()=>onClick(i);
+    el.appendChild(t);
+  });
+}
+function paint(el, classOf){
+  [...el.children].forEach((t,i)=>{
+    t.className='tile'+(t.classList.contains('click')?' click':'');
+    const c=classOf(i); if(c) t.classList.add(...c.split(' '));
+  });
+}
+
+/* ---------- VIEW 1: interactive wall ---------- */
+let WORDS=[],CLUES=[],SIMS=[],KEY=[]; const sel=new Set();
+function evaluate(){
+  const idx=[...sel];
+  if(idx.length===0||idx.length===WORDS.length) return null;
+  const uns=[]; for(let i=0;i<WORDS.length;i++) if(!sel.has(i)) uns.push(i);
+  let bestM=-Infinity,bestC=-1;
+  for(let c=0;c<SIMS.length;c++){
+    const row=SIMS[c];
+    let minT=Infinity; for(const t of idx) if(row[t]<minT) minT=row[t];
+    let maxR=-Infinity; for(const r of uns) if(row[r]>maxR) maxR=row[r];
+    const m=minT-maxR; if(m>bestM){bestM=m;bestC=c;}
+  }
+  const row=SIMS[bestC];
+  const pick=new Set([...Array(WORDS.length).keys()].sort((a,b)=>row[b]-row[a]).slice(0,idx.length));
+  return {clue:CLUES[bestC],margin:bestM,pick};
+}
+function renderExplore(){
+  const res=evaluate(); const pick=res?res.pick:new Set();
+  paint(document.getElementById('board'),(i)=>{
+    const s=sel.has(i),p=pick.has(i);
+    if(s&&p) return 'sel good'; if(s&&!p) return 'sel miss';
+    if(!s&&p) return 'bad'; if(s) return 'sel'; return '';
+  });
+  [...document.getElementById('board').children].forEach((t,i)=>{
+    t.querySelector('.tag').textContent=pick.has(i)?'●':'';
+  });
+  const out=document.getElementById('result');
+  if(!res){out.innerHTML='<div class="meta">Select one or more words.</div>';return;}
+  const ok=res.margin>0;
+  out.innerHTML=
+    `<div class="verdict ${ok?'ok':'no'}">${ok?'recoverable':'no legal clue separates this set'}</div>`+
+    `<div class="clue">${res.clue}</div>`+
+    `<div class="meta">count ${sel.size} · projection margin <code>${res.margin>=0?'+':''}${res.margin.toFixed(4)}</code>`+
+    `${ok?' · every target outranks every non-target':' · a non-target outranks one of your targets (red tile)'}</div>`;
+}
+
+/* ---------- VIEW 2: dissociation replay ---------- */
+let cardIdx=0, revealed=false;
+function renderTwist(){
+  const cards=DATA.dissociation, c=cards[cardIdx];
+  const intended=new Set(c.intended.map(w=>c.board_words.indexOf(w)));
+  const guessed=new Set(c.guesses.map(w=>c.board_words.indexOf(w)).filter(i=>i>=0));
+  makeBoard(document.getElementById('t-board'), c.board_words, null);
+  if(!revealed){
+    paint(document.getElementById('t-board'),(i)=>intended.has(i)?'sel':'');
+  }else{
+    paint(document.getElementById('t-board'),(i)=>{
+      const ai=intended.has(i),g=guessed.has(i);
+      if(ai&&g) return 'good'; if(g&&!ai) return 'bad'; if(ai&&!g) return 'miss'; return '';
+    });
+  }
+  const cert=c.kind==='certified';
+  document.getElementById('t-intro').innerHTML = cert
+    ? `The decoder <b>certifies</b> that the clue <b style="color:var(--ink)">${c.clue}</b> (count ${c.count}) perfectly recovers the ${c.count} highlighted words `
+      +`<span class="pill">margin ${c.margin>=0?'+':''}${c.margin}</span>`
+    : `An <b>ordinary</b> clue <b style="color:var(--ink)">${c.clue}</b> (count ${c.count}) for the ${c.count} highlighted words.`;
+  document.getElementById('t-count').textContent=`${cardIdx+1} / ${cards.length}`;
+  document.getElementById('t-reveal').classList.toggle('hidden', revealed);
+  const out=document.getElementById('t-result');
+  if(!revealed){ out.innerHTML=`<div class="meta">Blue = the set the decoder says this clue recovers. Now reveal what ${c.model} actually picked.</div>`; return; }
+  const ok=c.recovered;
+  out.innerHTML=
+    `<div class="verdict ${ok?'ok':'no'}">${ok?'reader recovered it':'reader missed it'}</div>`+
+    `<div class="meta" style="margin-top:6px">${c.model} guessed: ${c.guesses.map(g=>intended.has(c.board_words.indexOf(g))?`<b style="color:var(--good)">${g}</b>`:`<b style="color:var(--bad)">${g}</b>`).join(', ')}</div>`+
+    `<div class="meta">${c.hits} of ${c.count} on target`+
+    `${cert&&!ok?' — the decoder called this clue perfect; a real reader recovers a different set entirely.':''}</div>`;
+}
+function setCard(i){ cardIdx=(i+DATA.dissociation.length)%DATA.dissociation.length; revealed=false; renderTwist(); }
+
+/* ---------- wiring ---------- */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+    tab.classList.add('on');
+    const v=tab.dataset.view;
+    document.getElementById('explore').classList.toggle('hidden',v!=='explore');
+    document.getElementById('twist').classList.toggle('hidden',v!=='twist');
+  };
+});
+document.getElementById('key').onclick=()=>{sel.clear();KEY.forEach(w=>{const i=WORDS.indexOf(w);if(i>=0)sel.add(i);});renderExplore();};
+document.getElementById('clear').onclick=()=>{sel.clear();renderExplore();};
+document.getElementById('t-reveal').onclick=()=>{revealed=true;renderTwist();};
+document.getElementById('t-prev').onclick=()=>setCard(cardIdx-1);
+document.getElementById('t-next').onclick=()=>setCard(cardIdx+1);
+
+fetch('./data/boards.json').then(r=>r.json()).then(d=>{
+  DATA=d; const b=d.boards[0];
+  WORDS=b.words;CLUES=b.clues;SIMS=b.sims;KEY=b.headline_subset;
+  makeBoard(document.getElementById('board'),WORDS,(i)=>{sel.has(i)?sel.delete(i):sel.add(i);renderExplore();});
+  renderExplore(); setCard(0);
+});
+</script>
+</body>
+</html>
