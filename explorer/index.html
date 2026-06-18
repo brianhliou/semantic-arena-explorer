@@ -6,8 +6,8 @@
 <title>Semantic Arena — One-Clue Explorer</title>
 <style>
   :root {
-    --bg:#0f1115; --panel:#171a21; --ink:#e7e9ee; --mut:#8b90a0; --line:#2a2f3a;
-    --sel:#3b82f6; --good:#22c55e; --bad:#ef4444; --miss:#f59e0b; --accent:#6ea8fe;
+    --bg:#fdfdfd; --panel:#ffffff; --ink:#1a1a1a; --mut:#666666; --line:#e3e3e8;
+    --sel:#2563eb; --good:#16a34a; --bad:#dc2626; --miss:#c2740a; --accent:#2563eb;
   }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--ink);
@@ -35,16 +35,16 @@
     padding:12px 6px; text-align:center; user-select:none; font-size:13px;
     transition:border-color .08s, background .08s; position:relative; overflow-wrap:break-word; }
   .tile.click { cursor:pointer; }
-  .tile.click:hover { border-color:#3a4252; }
-  .tile.sel  { border-color:var(--sel); background:#16233b; }
-  .tile.good { border-color:var(--good); background:#11231a; }
-  .tile.bad  { border-color:var(--bad); background:#2a1417; }
-  .tile.miss { border-color:var(--miss); background:#291f10; }
+  .tile.click:hover { border-color:#c4c4cc; }
+  .tile.sel  { border-color:var(--sel); background:#eef3fe; }
+  .tile.good { border-color:var(--good); background:#e8f7ee; }
+  .tile.bad  { border-color:var(--bad); background:#fdeceb; }
+  .tile.miss { border-color:var(--miss); background:#fbf1e1; }
   .tag { position:absolute; top:4px; right:6px; font-size:10px; color:var(--mut); }
   .controls { display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; align-items:center; }
   button { background:var(--panel); color:var(--ink); border:1px solid var(--line);
     border-radius:8px; padding:8px 14px; cursor:pointer; font-size:13px; }
-  button:hover { border-color:#3a4252; }
+  button:hover { border-color:#c4c4cc; }
   button.primary { border-color:var(--sel); }
   .result { background:var(--panel); border:1px solid var(--line); border-radius:12px;
     padding:18px 20px; margin-top:8px; min-height:92px; }
@@ -54,7 +54,7 @@
   .meta { color:var(--mut); font-size:13px; }
   .legend { color:var(--mut); font-size:12px; margin-top:18px; }
   .legend b { font-weight:600; }
-  code { color:#cbd2e0; }
+  code { color:#1f2937; }
   .nav { color:var(--mut); font-size:13px; margin-left:auto; }
   .hidden { display:none; }
   .card-head { margin:0 0 14px; }
