@@ -7,7 +7,7 @@
 <style>
   :root {
     --bg:#0f1115; --panel:#171a21; --ink:#e7e9ee; --mut:#8b90a0; --line:#2a2f3a;
-    --sel:#3b82f6; --good:#22c55e; --bad:#ef4444; --miss:#f59e0b;
+    --sel:#3b82f6; --good:#22c55e; --bad:#ef4444; --miss:#f59e0b; --accent:#6ea8fe;
   }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--ink);
@@ -15,6 +15,17 @@
   .wrap { max-width:760px; margin:0 auto; padding:28px 20px 60px; }
   h1 { font-size:22px; margin:0 0 4px; }
   .sub { color:var(--mut); margin:0 0 18px; }
+  .site-header { display:flex; align-items:center; gap:4px 16px; flex-wrap:wrap;
+    padding:12px 20px; border-bottom:1px solid var(--line); }
+  .site-header h1 { margin:0; font-size:1.15rem; font-weight:700; }
+  .hlinks { margin-left:auto; display:flex; align-items:center; gap:16px;
+    font-size:.86rem; white-space:nowrap; flex-wrap:wrap; }
+  .hlinks a, .navbtn { color:var(--accent); text-decoration:none; font-weight:600; }
+  .hlinks a:hover, .navbtn:hover { text-decoration:underline; }
+  .navbtn { background:none; border:0; padding:0; font:inherit; color:var(--accent); cursor:pointer; }
+  .howpanel { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; margin-bottom:18px; font-size:13.5px; line-height:1.55; }
+  .howpanel p { margin:0 0 8px; } .howpanel p:last-child { margin:0; }
   .tabs { display:flex; gap:6px; margin-bottom:20px; border-bottom:1px solid var(--line); }
   .tab { padding:9px 14px; cursor:pointer; color:var(--mut); font-size:14px;
     border-bottom:2px solid transparent; margin-bottom:-1px; }
@@ -58,15 +69,31 @@
     .board { gap:5px; }
     .tile { padding:9px 3px; font-size:11px; }
     .clue { font-size:24px; }
-    h1 { font-size:19px; }
+    .site-header { padding:11px 12px; gap:8px; }
+    .site-header h1 { font-size:1.05rem; }
+    .hlinks { gap:9px 13px; font-size:.82rem; }
     .tabs { gap:2px; }
     .tab { padding:8px 9px; font-size:13px; }
   }
 </style>
 </head>
 <body>
+<header class="site-header">
+  <h1>One-Clue Explorer</h1>
+  <nav class="hlinks" aria-label="Viewer navigation">
+    <button class="navbtn" id="howBtn" type="button">How it works</button>
+    <a href="https://brianhliou.com/posts/one-word-six-cards/">Write-up</a>
+    <a href="https://brianhliou.com/assets/posts/one-word-six-cards/one-clue-reference.pdf">Paper</a>
+    <a href="https://github.com/brianhliou/semantic-arena-explorer">GitHub</a>
+    <a href="https://brianhliou.com/">Brian Liou</a>
+  </nav>
+</header>
 <div class="wrap">
-  <h1>One-clue explorer</h1>
+  <div id="howPanel" class="howpanel hidden">
+    <p>Every board word and every legal clue is a 300-dimensional GloVe word vector. Pick the cards you want your partner to find; the browser ranks all 25 board words by cosine similarity to each of the ~7,000 legal clue words and reports the single clue that best separates your set.</p>
+    <p><b style="color:var(--good)">Green</b> means some legal word ranks all of your targets above every other card. <b style="color:var(--bad)">Red</b> means none does — the wall. The number is the projection margin: how far the best clue is from cleanly separating the set.</p>
+    <p>The second tab, <em>Decoder-perfect, reader fails</em>, replays real audits: clues the decoder rated perfect that a live language-model or human reader still couldn't recover. Decoder-recoverable and humanly readable come apart.</p>
+  </div>
   <p class="sub">A 25-word board, a hidden subset, and one legal clue word. What can it communicate?</p>
 
   <div class="tabs">
@@ -110,13 +137,6 @@
       <b style="color:var(--miss)">amber</b> intended word the reader missed
     </p>
   </div>
-
-  <footer class="foot">
-    From the writeup:
-    <a href="https://brianhliou.com/posts/one-word-six-cards/">One word, six cards</a> ·
-    <a href="https://brianhliou.com/assets/posts/one-word-six-cards/one-clue-reference.pdf">the paper (PDF)</a> ·
-    <a href="https://github.com/brianhliou/semantic-arena-explorer">code &amp; data</a>
-  </footer>
 </div>
 
 <script>
@@ -220,6 +240,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.getElementById('twist').classList.toggle('hidden',v!=='twist');
   };
 });
+document.getElementById('howBtn').onclick=()=>document.getElementById('howPanel').classList.toggle('hidden');
 document.getElementById('key').onclick=()=>{sel.clear();KEY.forEach(w=>{const i=WORDS.indexOf(w);if(i>=0)sel.add(i);});renderExplore();};
 document.getElementById('clear').onclick=()=>{sel.clear();renderExplore();};
 document.getElementById('t-reveal').onclick=()=>{revealed=true;renderTwist();};
