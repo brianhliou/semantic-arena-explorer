@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Semantic Arena — One-Clue Explorer</title>
+<title>Semantic Arena: One-Clue Explorer</title>
 <style>
   :root {
     --bg:#fdfdfd; --panel:#ffffff; --ink:#1a1a1a; --mut:#666666; --line:#e3e3e8;
@@ -91,7 +91,7 @@
 <div class="wrap">
   <div id="howPanel" class="howpanel hidden">
     <p>Every board word and every legal clue is a 300-dimensional GloVe word vector. Pick the cards you want your partner to find; the browser ranks all 25 board words by cosine similarity to each of the ~7,000 legal clue words and reports the single clue that best separates your set.</p>
-    <p><b style="color:var(--good)">Green</b> means some legal word ranks all of your targets above every other card. <b style="color:var(--bad)">Red</b> means none does — the wall. The number is the projection margin: how far the best clue is from cleanly separating the set.</p>
+    <p><b style="color:var(--good)">Green</b> means some legal word ranks all of your targets above every other card. <b style="color:var(--bad)">Red</b> means none does. That is the wall. The number is the projection margin: how far the best clue is from cleanly separating the set.</p>
     <p>The second tab, <em>Decoder-perfect, reader fails</em>, replays real audits: clues the decoder rated perfect that a live language-model or human reader still couldn't recover. Decoder-recoverable and humanly readable come apart.</p>
   </div>
   <p class="sub">A 25-word board, a hidden subset, and one legal clue word. What can it communicate?</p>
@@ -226,7 +226,7 @@ function renderTwist(){
     `<div class="verdict ${ok?'ok':'no'}">${ok?'reader recovered it':'reader missed it'}</div>`+
     `<div class="meta" style="margin-top:6px">${c.model} guessed: ${c.guesses.map(g=>intended.has(c.board_words.indexOf(g))?`<b style="color:var(--good)">${g}</b>`:`<b style="color:var(--bad)">${g}</b>`).join(', ')}</div>`+
     `<div class="meta">${c.hits} of ${c.count} on target`+
-    `${cert&&!ok?' — the decoder called this clue perfect; a real reader recovers a different set entirely.':''}</div>`;
+    `${cert&&!ok?'. The decoder called this clue perfect; a real reader recovers a different set entirely.':''}</div>`;
 }
 function setCard(i){ cardIdx=(i+DATA.dissociation.length)%DATA.dissociation.length; revealed=false; renderTwist(); }
 

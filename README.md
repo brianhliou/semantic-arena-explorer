@@ -1,12 +1,12 @@
-# Semantic Arena — One-Clue Reference
+# Semantic Arena: One-Clue Reference
 
-How much can a single word communicate? In word-association games like Codenames, a player must make a partner pick an exact subset of a 25-word board using one clue word plus a count. The tempting move is one clue that points at all nine of your cards at once. This repo measures whether that clue exists, and ships an explorer so you can feel where it breaks.
+In Codenames, a player gets a partner to pick an exact subset of a 25-word board from one clue word and a count. The tempting move is one clue that points at all nine of your cards at once. This repo measures whether that clue exists, and ships an explorer so you can feel where it breaks.
 
-**Under a fixed vocabulary of 7,009 common English words and a standard embedding-similarity decoder, a single legal word pins down all nine of your cards on only 0.286% of boards — by exact count over 202 million board assignments, not a sample. The realistic ceiling is about six. The wall isn't the geometry of the embedding space, it's the vocabulary.** And the clues that *do* satisfy the decoder mostly fail on a real reader: ordinary clues recovered at 23 of 24, decoder-certified clues at 0 of 44.
+**Under a fixed vocabulary of 7,009 common English words and a standard embedding-similarity decoder, a single legal word pins down all nine of your cards on only 0.286% of boards. That is an exact count over 202 million board assignments, every clue enumerated. The realistic ceiling is about six. And what blocks it is the vocabulary: the geometry permits the separation, but no common word realizes it.** The clues that *do* satisfy the decoder mostly fail on a real reader: ordinary clues recovered at 23 of 24, decoder-certified clues at 0 of 44.
 
 ## Try it
 
-**[semantic-arena.brianhliou.com](https://semantic-arena.brianhliou.com)** — pick a target subset and watch the decoder find a clue or hit the wall, then see decoder-perfect clues that a real reader still can't read.
+**[semantic-arena.brianhliou.com](https://semantic-arena.brianhliou.com)**: pick a target subset and watch the decoder find a clue or hit the wall, then see decoder-perfect clues a real reader still can't read.
 
 Run it locally with no build step:
 
@@ -38,7 +38,7 @@ python3 fetch_embeddings.py          # downloads the 31MB slim pack
 python3 precompute.py                # rewrites ../explorer/data/boards.json
 ```
 
-The decoder is about 60 lines ([reproduce/semantic_clue/decoder.py](reproduce/semantic_clue/decoder.py)): a clue recovers a subset when, ranking board words by cosine similarity to the clue, the targets take the top spots. The projection margin is the best any legal clue does — positive means a word separates the subset, negative is the wall.
+The decoder is about 60 lines ([reproduce/semantic_clue/decoder.py](reproduce/semantic_clue/decoder.py)): a clue recovers a subset when, ranking board words by cosine similarity to the clue, the targets take the top spots. The projection margin is the best any legal clue does: positive means a word separates the subset, negative is the wall.
 
 ## The paper
 
