@@ -1,5 +1,8 @@
 \documentclass[11pt]{article}
 
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[htt]{hyphenat}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{booktabs}
@@ -7,6 +10,9 @@
 \usepackage{microtype}
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage[hidelinks]{hyperref}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{positioning, decorations.pathreplacing}
 
 \newtheorem{proposition}{Proposition}
 \newtheorem{definition}{Definition}
@@ -30,7 +36,7 @@ common-English vocabulary and a deterministic embedding-rank decoder, exact
 recovery of a nine-word subset is available for only $0.286\%$ of board-relative
 target sets, by exact enumeration over $2.0 \times 10^{8}$ assignments, with a
 practical frontier near six. The limit is not geometric: synthetic vectors
-separate essentially every subset in 300 dimensions, so the binding constraint
+separate essentially every subset in 300 dimensions, so the wall
 is the projection from an ideal separating direction onto a legal word. In
 controlled pilot audits, the separations the decoder certifies do not transfer
 to pragmatic receivers: language-model and blinded-human guessers recover
@@ -38,8 +44,10 @@ ordinary semantic clues at 23 of 24 but decoder-certified challenge clues at 0
 of 44, a dissociation that survives stronger receivers and reproduces on natural
 game distributions. The dominant variable for natural recoverability is the
 availability of a clean separating concept, not the target count. A symbolic
-WordNet replication reproduces the high-count collapse with no embedding,
-bounding when embedding cosine similarity is a safe proxy for communication.
+WordNet replication reproduces the collapse with no embedding. More broadly, the
+result bounds when embedding cosine similarity is a safe proxy for communication:
+least so at high cardinality and low margin, the regime where it is most tempting
+to trust.
 \end{abstract}
 
 \section{Introduction}
@@ -63,40 +71,29 @@ information capacity of a one-word channel, the geometry of the embedding space
 in which similarity is computed, the coverage of the legal vocabulary relative to
 that geometry, and the pragmatics of how a real receiver interprets a word.
 
-The one-word channel is much weaker than the game's nominal ceiling, and the
-reason is specific. Recovering an arbitrary 9-of-25 subset requires about 21
-bits, while one common-English word carries about 12.8, so no \emph{universal}
-one-word strategy can exist; the substantive question is per-instance existence.
-Under a frozen common-English vocabulary and a deterministic embedding-rank
-decoder, exact recovery of a 9-word subset is available for only $0.286\%$ of
-board-relative target sets, measured by exact enumeration over $2.0 \times
-10^{8}$ assignments, with a practical frontier near six. This limit is not
-geometric. Synthetic vectors separate essentially every target subset in 300
-dimensions, so the wall is the \emph{projection} from an ideal separating
-direction onto a legal word: few vocabulary items realize the direction the
-geometry allows. The separations that the decoder does certify then fail a second
-test. In a controlled audit with positive controls, large-language-model
-receivers recovered ordinary semantic clues at 23 of 24 but recovered
-decoder-certified challenge clues, every one a proven exact recovery under the
-embedding decoder, at 0 of 44; twenty additional best-available negative-margin
-clues also transferred at zero, and a stronger receiver tier reproduces the same
-zeros. Decoder-recoverability and natural communicability come apart. The
-variable that dominates natural recoverability is not target count but the
-availability of a clean separating concept: a single same-category distractor on
-the board collapses exact recovery, and count retains only a secondary effect
-within clean clusters. The collapse is not an artifact of constructed challenge
-sets: on natural first-turn game distributions, exact recovery at counts 4
-through 9 was zero across 384 blinded audits, and cluegivers allowed to choose
-their own move retreated to counts 1 through 3. A symbolic analysis over WordNet
-hypernym concepts reproduces the same shape, which argues against the explanation
-being only a GloVe-geometry artifact.
+The one-word channel is much weaker than the game's nominal ceiling. Recovering
+an arbitrary 9-of-25 subset takes about 21 bits while one common-English word
+carries about 12.8, so no \emph{universal} one-word strategy exists; the live
+question is per-instance existence. Under a frozen common-English vocabulary and
+an embedding-rank decoder, exact recovery of a 9-word subset is available for
+only $0.286\%$ of board-relative target sets, by exact enumeration over
+$2.0 \times 10^{8}$ assignments, with a practical frontier near six. The
+shortfall is not geometric: synthetic vectors separate essentially every subset
+in 300 dimensions, so the wall is the \emph{projection} from an ideal direction
+onto a legal word. The separations the decoder does certify then fail a second
+test: in a controlled audit, receivers recovered ordinary clues at 23 of 24 but
+decoder-certified clues at 0 of 44, so decoder-recoverability and communicability
+come apart. What dominates natural recoverability is the availability of a clean
+separating concept, not the count; both walls reproduce on natural game boards
+and in a symbolic model with no embedding in it.
 
 The result matters beyond the game. Embedding cosine similarity is a common proxy
-for ``this clue communicates this concept,'' and the dissociation we report shows
-the proxy is unsafe at the high-count, low-margin regime where it is most
-tempting to trust. Systems that generate clues, captions, or category labels by
-optimizing a similarity decoder are optimizing a target that a pragmatic receiver
-does not share. The constrained-reference framing also connects the problem to
+for ``this symbol communicates this meaning,'' and the dissociation we report shows
+the proxy is unsafe at the high-cardinality, low-margin regime where it is most
+tempting to trust. The same structure recurs beyond the game, in retrieval and
+reranking, single-word cluster labeling, caption generation, and embedding-based
+evaluation; in each, optimizing the similarity score optimizes a target a human
+receiver does not share. The constrained-reference framing also connects the problem to
 referential and signaling games, where the gap between what a continuous
 representation permits and what a discrete shared vocabulary realizes is the
 object of study rather than an implementation detail.
@@ -111,7 +108,7 @@ object of study rather than an implementation detail.
   \item An \textbf{exact characterization and measurement} under the
     known-decoder embedding-rank model: universal first-turn-9 is false
     ($0.286\%$ coverage), the practical exact frontier is near six, and the
-    binding constraint is vocabulary projection rather than embedding geometry.
+    limit is vocabulary projection rather than embedding geometry.
   \item A \textbf{dissociation result with positive controls}: clues that are
     certified exact recoveries under the embedding decoder do not transfer to
     pragmatic receivers (0 of 44), while ordinary semantic clues do (23 of 24);
@@ -125,16 +122,6 @@ object of study rather than an implementation detail.
     reproduces the same high-count collapse, defending the central claim against
     a purely embedding-geometric reading.
 \end{enumerate}
-
-Section~\ref{sec:related} places the work against Codenames AI benchmarks,
-referential and signaling games, rational speech-act pragmatics, and the
-discreteness of vocabulary relative to continuous embeddings.
-Section~\ref{sec:problem} gives the formal problem and the model ladder.
-Section~\ref{sec:bounds} states the theoretical bounds. Section~\ref{sec:setup}
-describes the experimental setup. Section~\ref{sec:results} presents results as a
-single argument from upper bounds down to pragmatic transfer.
-Sections~\ref{sec:discussion} through~\ref{sec:conclusion} discuss, bound, and
-conclude.
 
 \section{Related Work}\label{sec:related}
 
@@ -163,18 +150,15 @@ high-count clue fails. This paper supplies that map.
 
 \subsection{Pragmatics and Decoder-Aware Speakers}
 
-The known-decoder model is a pragmatic speaker that selects an utterance by
-modeling the listener. The Rational Speech Acts framework
-\citep{frank2012predicting} formalizes the speaker-models-listener recursion,
-with the cluegiver as speaker, the clue as utterance, the guesser as listener,
-and the target subset as referent. Neural instantiations rerank utterances
-against a learned listener model \citep{andreas2016pragmatics}, close to the
-simulate-the-partner move available in the known-decoder regime. Signaling-game
-theory \citep{lewis1969convention, skyrms2010signals} supplies the language of
-conventions and learned sender/receiver mappings, and work on common ground
-bounds the shared context a clue may presume. These frameworks describe how a
-decoder-aware speaker should choose; they do not quantify, for a fixed board and
-vocabulary, which referents such a speaker can reach.
+Our known-decoder model, where the cluegiver knows exactly how the partner will
+interpret a clue, is an instance of a speaker who chooses words by modeling the
+listener. The Rational Speech Acts framework \citep{frank2012predicting}
+formalizes that recursion; neural versions rerank utterances against a learned
+listener \citep{andreas2016pragmatics}; and signaling-game theory
+\citep{lewis1969convention, skyrms2010signals} supplies the language of learned
+sender/receiver conventions. These describe \emph{how} such a speaker should
+choose. None quantifies, for a fixed board and vocabulary, \emph{which} target
+subsets it can actually reach.
 
 \subsection{Separability and Learning Theory}
 
@@ -321,11 +305,35 @@ nested with the embedding-rank model: a clue can be naturally communicable yet
 decoder-unrecoverable, and the converse, which is the dissociation the paper
 reports.
 
-The ladder gives the paper its spine. Rungs (1) and (5) are upper bounds that
-establish that neither channel capacity nor geometry is the binding constraint.
+The ladder gives the paper its spine (Figure~\ref{fig:ladder}). Rungs (1) and (5) are upper bounds that
+establish that neither channel capacity nor geometry is the limiting factor.
 Rungs (3) and (4) localize the constraint to vocabulary projection. Rung (6) is
 the target the whole construction is meant to explain, and it is where
 decoder-recoverability and communicability separate.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\small,
+  rung/.style={draw, rounded corners, text width=9.2cm, minimum height=0.66cm, align=left, inner sep=4pt},
+]
+\node[rung] (r1) {\textbf{(1) Codebook}: arbitrary private code \;\textit{(capacity upper bound)}};
+\node[rung, below=1.6mm of r1] (r2) {\textbf{(2) Bounded convention}: one word $+$ $b$ side bits};
+\node[rung, below=1.6mm of r2] (r3) {\textbf{(3) Known decoder}: search the vocabulary against a fixed decoder};
+\node[rung, below=1.6mm of r3] (r4) {\textbf{(4) Embedding-rank}: a legal word, cosine top-$k$ \;\textit{(headline model)}};
+\node[rung, below=1.6mm of r4] (r5) {\textbf{(5) Synthetic vector}: any direction \;\textit{(geometry upper bound)}};
+\node[rung, below=1.6mm of r5] (r6) {\textbf{(6) Public concept / natural}: must read by meaning};
+\draw[decorate, decoration={brace, amplitude=5pt}, thick]
+  ([xshift=2mm]r4.north east) -- ([xshift=2mm]r5.south east)
+  node[midway, right=7pt, text width=3cm] {\textbf{the wall}: (5) geometry permits almost any subset; (4) a legal word realizes $0.286\%$};
+\end{tikzpicture}
+\caption{The model ladder, from the loosest channel (top) to the most faithful
+account of human play (bottom). Rungs (1) and (5) are idealized upper bounds, not
+playable models: neither channel capacity nor geometry forbids a first-turn-nine
+clue. The vocabulary-projection wall is the gap between rungs (5) and (4): a
+separating direction exists for almost any subset, but a legal word realizes one
+for only $0.286\%$ of nine-subsets (Sections~6.1--6.3).}
+\label{fig:ladder}
+\end{figure}
 
 \section{Theoretical Bounds}\label{sec:bounds}
 
@@ -333,7 +341,7 @@ Four facts bound the problem before any measurement. The first settles the
 universal question and isolates per-instance existence as the one that remains.
 The second makes per-instance existence computable. The third states the exact
 recovery condition for the embedding-rank decoder. The fourth establishes that
-geometry is permissive, which localizes the binding constraint to the vocabulary.
+geometry is permissive, which localizes the limit to the vocabulary.
 Throughout, $n$ is the board size and $k$ the target count, with the headline
 case $n = 25$, $k = 9$.
 
@@ -458,6 +466,13 @@ vocabulary-projection loss that Section~6.3 isolates.
 
 \subsection{Boards, Vocabulary, and Decoder}
 
+The setup has three independent pieces, each with its own pack: the \emph{boards}
+(the 25 words shown), the \emph{clue vocabulary} (the legal one-word guesses), and
+the \emph{embedding} (the vectors). They are distinct; in particular the
+7,009-word vocabulary below is the set of legal clues, not the boards, and the
+coverage figures enumerate every target subset of a board rather than sampling
+boards.
+
 Boards are drawn from two packs of concrete English nouns. The primary pack is
 \texttt{wordnet-concrete-v0.1}; a second pack,
 \texttt{wordnet-concrete-band2-v0.1}, drawn from a disjoint frequency band,
@@ -497,7 +512,9 @@ compared (Section~\ref{sec:limitations}).
 
 \subsection{The Pragmatic Audit Protocol}
 
-The natural / pragmatic model of Section~3.2 has no closed form, so we approximate
+Whether a clue communicates to a real reader is not something we can compute the
+way we compute the embedding decoder: the natural / pragmatic model of
+Section~3.2 has no formula. So we approximate
 a pragmatic receiver with large-language-model guessers, used as a stand-in for
 human receivers pending an independent human panel (Section~\ref{sec:conclusion}),
 plus a blinded single-judge human author-pilot over a stratified 72-item packet
@@ -647,15 +664,15 @@ same quantity; they agree within sampling error.
 estimates, in both cases for one embedding and two board packs; generalization to
 other embeddings is addressed in 6.7 and Section~\ref{sec:limitations}.
 
-\subsection{The Bottleneck Is Vocabulary Projection, Not Geometry}
+\subsection{The Bottleneck Is Vocabulary Projection}
 
 \textbf{The collapse is the gap between what the geometry permits and what a legal
 word realizes.} Synthetic vectors recover essentially everything (6.1); legal
 words recover 0.286\% at $k = 9$ (6.2). The difference,
 $R_{\mathrm{synthetic}} \setminus R_{\mathrm{embed}}$, is the set of subsets whose
 separating direction exists but is named by no legal clue. Tightening the
-vocabulary deepens the collapse monotonically, which is the signature of a
-projection constraint rather than a geometric one (sampled positive-margin rates,
+vocabulary deepens the collapse monotonically; since the geometry is identical
+across tiers, the effect is lexical (Figure~\ref{fig:coverage}; sampled positive-margin rates,
 1,000 subsets per count per board; Section~5.3):
 
 \begin{center}
@@ -680,6 +697,37 @@ legal word.
 \emph{Caveat.} The permissive-lexical tier is an optimistic ablation, not a
 playable clue model; it bounds the effect of vocabulary loosening rather than
 describing real play.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=0.82\linewidth, height=6cm,
+  xlabel={target count $k$}, ylabel={fraction recoverable},
+  ymode=log, log basis y={10},
+  xmin=1, xmax=9, ymin=0.002, ymax=1.3,
+  xtick={1,2,3,4,5,6,7,8,9},
+  ytick={1,0.1,0.01,0.003}, yticklabels={$1$,$0.1$,$0.01$,$0.003$},
+  legend pos=south west, legend cell align=left, legend style={font=\small, draw=gray!40},
+  grid=major, grid style={gray!18},
+  tick label style={font=\small}, label style={font=\small},
+]
+\addplot[mark=*, thick, blue!70!black] coordinates {(1,1.0)(2,0.9999)(3,0.9323)(4,0.5643)(5,0.2415)(6,0.0987)(7,0.0439)(8,0.0213)(9,0.0113)};
+\addlegendentry{permissive lexical}
+\addplot[mark=square*, thick, orange!85!black] coordinates {(1,1.0)(2,0.9911)(3,0.6887)(4,0.2901)(5,0.1045)(6,0.0384)(7,0.0163)(8,0.0078)(9,0.0042)};
+\addlegendentry{WordNet common}
+\addplot[mark=triangle*, thick, red!75!black] coordinates {(1,1.0)(2,0.9586)(3,0.5492)(4,0.2072)(5,0.0717)(6,0.0259)(7,0.0110)(8,0.0054)(9,0.0029)};
+\addlegendentry{WordNet Brown common}
+\end{axis}
+\end{tikzpicture}
+\caption{Coverage collapses with target count, and a stricter vocabulary lowers
+the whole curve. Fraction of board-relative target subsets a legal clue can
+separate (positive projection margin) by count $k$, for three clue-vocabulary
+tiers, primary pack, log scale. The common-English tier reaches $0.0029$ at
+$k=9$ (the $0.286\%$ headline); each step toward a more natural vocabulary is the
+projection effect of this section.}
+\label{fig:coverage}
+\end{figure}
 
 \subsection{Clues Optimal Under the Decoder Do Not Reach Pragmatic Receivers}
 
@@ -757,10 +805,7 @@ a non-target in 6 of the 12 items; LLM-generated and arbitrary-subset challenge
 clues recovered 0 of 24. The cluster strata land almost exactly on the LLM rates:
 clean clusters 6/12 exact with an 85.1\% target-hit rate (LLM pilots: 50\% and
 85.9\%), and same-tag interference 0/12 with 68.4\% hits (LLM: 0\% and 68.3\%).
-The author-pilot controls used the original leaked-position boards
-(Section~5.2), so the labeler's 12/12 there is not by itself diagnostic; the
-labeler's semantic competence is independently evidenced by the unleaked cluster
-stratum at 85.1\% target hits. One hypothesis-aware author is not an independent
+One hypothesis-aware author is not an independent
 panel, so under the study's own wording gate this remains pilot evidence; it does,
 however, weigh against the reading that the dissociation is a quirk of LLM
 receivers that human receivers would not share.
@@ -792,6 +837,14 @@ clusters + 2 same-tag distractors & 0/48 & 68.3\% \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+Concretely, a clean separating concept is a sharp category that names the targets
+and nothing else on the board: four animals, with no other animal among the 25
+words, clued by \texttt{animal}. This is stronger than geometric separability:
+the synthetic upper bound (Section~6.1) shows a separating \emph{direction} exists
+for almost any subset, but a clean concept also needs a single legal \emph{word}
+to realize that direction and a real reader to read it. The per-category
+breakdown later in this section shows the variable directly.
 
 Within the clean clusters, count retains a secondary effect: exact recovery is
 16/24 at counts 4 through 6 and 8/24 at counts 7 through 9, including 2/8 at count
@@ -940,49 +993,35 @@ of natural play.
 
 \section{Discussion}\label{sec:discussion}
 
-The results compose into a layered account of where one-clue communication breaks.
-Channel capacity is permissive: the codebook bound is finite, and
-Proposition~\ref{prop:pigeonhole} rules out only a universal one-word protocol
-(6.1). Geometry is permissive too: in 300 dimensions the board vectors lie in
-general position, so a separating direction exists for essentially every target
-subset (6.1, Proposition~\ref{prop:geometry}). The binding constraint is
-vocabulary projection. The legal words realize only a sparse subset of the
-directions the geometry offers, and the gap between the synthetic upper bound and
-the embedding-rank image is the set of subsets whose separating direction no word
-names (6.2, 6.3). Tightening the vocabulary toward more natural words widens that
-gap monotonically.
+The results compose into a layered account. Channel capacity and geometry are
+both permissive (Section~6.1): the codebook bound is finite, and in 300 dimensions
+a separating direction exists for essentially every target subset. The first wall
+is vocabulary projection: the legal words realize only a sparse subset of those
+directions, and tightening the vocabulary toward natural words widens the gap
+(Sections~6.2, 6.3). A second wall stands behind it. Even the separations a legal
+clue realizes are often artifacts a margin-maximizer exploits rather than
+meanings, and they do not survive a pragmatic receiver (Section~6.4); what does
+survive is a clean separating concept on the whole board, which a single
+same-category distractor destroys (Section~6.5). Neither wall is an artifact of
+constructed challenge sets: both hold on natural game boards (Section~6.6) and in
+a symbolic model with no embedding in it (Section~6.7).
 
-A second wall stands behind the first. Even the separations a legal clue does
-realize are often decoder artifacts rather than meanings: a projection-margin
-maximizer exploits how one ranking algorithm orders words, and such clues do not
-survive contact with a pragmatic receiver (6.4). Decoder-recoverability and
-communicability are different properties, and the difference is large in exactly
-the high-count, low-margin regime where embedding similarity is most tempting to
-trust. What does carry to a pragmatic receiver is clean concept separation on the
-whole board: when the targets share a sharp public category and the board holds no
-same-category distractor, transfer rises from zero to roughly a third even at
-counts 7 through 9, with occasional exact nines; a single same-category distractor
-collapses exact recovery while leaving partial signal intact, and count retains a
-secondary effect within clean clusters (6.5). None of this depends on constructed
-challenge distributions: on natural first-turn boards exact recovery at counts 4
-through 9 was zero across 384 audits, and when the cluegiver could choose its own
-move it retreated to counts 1 through 3, succeeding only there (6.6). A symbolic
-public-concept model with no embedding in it reaches the same high-count collapse,
-which argues against explaining the result only as a GloVe-geometry artifact
-(6.7).
-
-Two implications follow for practice. Embedding cosine similarity is an unsafe
-proxy for ``this clue communicates this set,'' and the failure concentrates where
-it would do the most damage, at high target counts and low separating margins.
-Systems that generate clues, captions, or category labels by optimizing a
-similarity decoder are optimizing a target their human receiver does not share.
-The variable worth controlling in clue generation and in board or benchmark design
-is concept separation first and target count second: count is a much weaker
-predictor of difficulty once cluster availability is in view.
+Two implications follow for practice. First, embedding cosine similarity is an
+unsafe proxy for ``this symbol communicates this set,'' and the failure
+concentrates where it would do the most damage, at high cardinality and low
+margin, the regime where the proxy still reads as confident. The same structure
+recurs wherever a single embedding-decoded signal must pick out an exact set:
+retrieval and reranking, single-word cluster or category labeling,
+referring-expression and caption generation, and embedding-based evaluation. In
+each, optimizing the similarity score optimizes a target the human receiver does
+not share, and the dissociation we measure here predicts the same gap. Second, the
+variable worth controlling is concept separation before count: count is a much
+weaker predictor of difficulty once a clean separating concept is in view, whether
+the task is clue generation, label generation, or benchmark design.
 
 Read as a statement about constrained reference, the paper isolates a general
 bottleneck. When a speaker must indicate a structured referent through a single
-symbol drawn from a shared, finite vocabulary, the binding constraint is the
+symbol drawn from a shared, finite vocabulary, the limit is the
 projection from an ideal meaning onto a legal, board-separating word. The geometry
 of the underlying representation can be permissive while the vocabulary that names
 it is not.
@@ -1045,7 +1084,7 @@ natural clueing.
 
 A single word from a shared, finite vocabulary cannot reliably indicate an
 arbitrary nine-of-twenty-five target subset, and the reason is specific. Capacity
-and geometry are permissive; the binding constraint is the projection from an
+and geometry are permissive; the limit is the projection from an
 ideal separating direction onto a legal word, and the separations a decoder does
 certify often fail to reach a pragmatic receiver. The variable that dominates
 natural recoverability is clean concept separation on the board, with target count
@@ -1062,9 +1101,15 @@ the Rational Speech Acts family, would give the pragmatic rung of the ladder a
 closed form rather than an audit proxy. Distributional bounds in terms of board
 size, vocabulary size, embedding dimension, and semantic density would turn the
 measured curves into predictions. Extending the model from one-clue recoverability
-to full-game value, where counts, turn order, and risk interact, is a separate
-problem for which the recoverability map is a prerequisite, and we leave it to
-future work.
+to full-game value is a separate problem for which this map is a prerequisite.
+Because the reliable one-clue frontier sits near six rather than nine, optimal
+play is inherently multi-turn and strategic: a cluegiver must choose which few
+targets to indicate each turn, trading coverage against the risk that a clue broad
+enough to reach its targets also ranks an opponent's word, a bystander, or the
+assassin highly. The projection margin already supplies the language for that
+trade-off, the margin over one's own targets against proximity to dangerous words,
+and competitive game-value analysis on top of the recoverability map is a natural
+next step that we leave to future work.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
