@@ -83,19 +83,25 @@ def extract_dissociation():
                     "guesses": resp["guesses"],
                     "hits": sc["target_hits"], "recovered": sc["exact_match"],
                 }
+    near_miss = []
     for path in CONTROL_FILES:
         for line in path.read_text().splitlines():
             r = json.loads(line)
             it, sc, resp = r["item"], r["scores"], r["response"]
-            if it.get("control_type") and sc["exact_match"] and len(controls) < 2:
-                controls.append({
-                    "kind": "control", "clue": it["clue"], "count": it["count"],
-                    "margin": None, "model": r["model"],
-                    "board_words": it["board_words"], "intended": it["target_set"],
-                    "guesses": resp["guesses"],
-                    "hits": sc["target_hits"], "recovered": sc["exact_match"],
-                })
-    return controls + [cert[c] for c in CERT_CLUES if c in cert]
+            if not it.get("control_type"):
+                continue
+            card = {
+                "kind": "control", "clue": it["clue"], "count": it["count"],
+                "margin": None, "model": r["model"],
+                "board_words": it["board_words"], "intended": it["target_set"],
+                "guesses": resp["guesses"],
+                "hits": sc["target_hits"], "recovered": sc["exact_match"],
+            }
+            if sc["exact_match"] and len(controls) < 2:
+                controls.append(card)
+            elif not sc["exact_match"] and it["clue"] == "car" and not near_miss:
+                near_miss.append(card)
+    return controls + near_miss + [cert[c] for c in CERT_CLUES if c in cert]
 
 
 def main() -> int:
