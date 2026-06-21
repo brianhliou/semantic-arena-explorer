@@ -19,3 +19,4 @@ paper/*.out
 
 # macOS
 .DS_Store
+.vercel

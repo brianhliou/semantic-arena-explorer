@@ -23,10 +23,10 @@ from semantic_clue.decoder import EmbeddingPack  # noqa: E402
 REPO = HERE.parent
 EMBEDDINGS = HERE / "data" / "embeddings" / "glove-6B-300d-slim.npz"
 CLUE_VOCAB = HERE / "data" / "clue-vocabs" / "wordnet-brown-common-v0.1.json"
-AUDIT_FILES = [
-    HERE / "data" / "audit" / "openai-nano-controls-v0.1.jsonl",
-    HERE / "data" / "audit" / "anthropic-haiku-controls-v0.1.jsonl",
-]
+# Certified-challenge items come from the audit log; controls come from the
+# randomized-position (shuffled) control run.
+CERT_FILES = [HERE / "data" / "audit" / "openai-nano-challenge-v0.1.jsonl"]
+CONTROL_FILES = [HERE / "data" / "audit" / "shuffled-controls-gpt-5.4-nano-v0.2.jsonl"]
 OUT = REPO / "explorer" / "data" / "boards.json"
 
 # The darling counterexample board: the full 9-key is unrecoverable
@@ -68,7 +68,7 @@ def build_board(board_id, words, headline_subset, pack, vocab):
 
 def extract_dissociation():
     cert, controls = {}, []
-    for path in AUDIT_FILES:
+    for path in CERT_FILES:
         for line in path.read_text().splitlines():
             r = json.loads(line)
             it, sc, resp = r["item"], r["scores"], r["response"]
@@ -83,7 +83,7 @@ def extract_dissociation():
                     "guesses": resp["guesses"],
                     "hits": sc["target_hits"], "recovered": sc["exact_match"],
                 }
-    for path in AUDIT_FILES:
+    for path in CONTROL_FILES:
         for line in path.read_text().splitlines():
             r = json.loads(line)
             it, sc, resp = r["item"], r["scores"], r["response"]

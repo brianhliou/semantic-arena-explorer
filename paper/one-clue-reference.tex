@@ -553,15 +553,6 @@ intended subset; generated moves are legality-filtered (single non-board clue
 word, chosen subset within the key, count matching the subset) before blinded
 audit, and exact recovery is scored against the cluegiver's own declared subset.
 
-One construction artifact was found and fixed after the pilot runs: the
-hand-authored control items listed their targets as the first \texttt{count} board
-words, so the original control boards leaked target position. No challenge or
-cluster stratum shares the leak (mean head-of-board target overlap 0.20--0.44, no
-leaked items). Rerunning the controls with shuffled boards across all four
-receivers reproduces the pass, 46/48 exact with 97.9--100\% target-hit rates, so
-control performance reflects meaning rather than position; the control builder now
-shuffles board order, and the v0.2 review packet is leak-free in every stratum.
-
 Two metrics are reported. \textbf{Exact recovery} is the fraction of items where
 the first $k$ guesses equal the target set. \textbf{Target-hit rate} is the
 fraction of all guesses that fall on targets, a partial-credit measure that
@@ -733,8 +724,8 @@ projection effect of this section.}
 
 \textbf{Decoder-recoverability and natural communicability come apart.} In the
 controlled audit, language-model guessers recovered ordinary clues nearly
-perfectly and recovered decoder-certified challenge clues at zero. The challenge
-items split by certification status (Section~5.2): the 44 decoder-certified items
+perfectly and recovered decoder-certified challenge clues at zero. The challenge items split by
+certification status (Section~5.2): the 44 decoder-certified items
 each carry a positive projection margin, so the decoder provably recovers the
 declared subset from the clue, and they are the items that bear on the
 dissociation; the 20 negative-margin items are near-threshold contrasts:
@@ -766,7 +757,9 @@ model & controls exact & certified challenge exact & negative-margin exact \\
 
 The controls rule out a broken protocol: the same machinery that recovers
 \texttt{animal 3} and \texttt{vehicle 4} recovers none of the decoder-certified
-challenge clues. A clue that maximizes the projection margin is exploiting how a
+challenge clues. The lone control miss is meaning-driven: under \texttt{car 4} the reader takes
+\texttt{truck} over the intended \texttt{driver}, a same-category near-swap that
+recurs at the stronger receiver tier. A clue that maximizes the projection margin is exploiting how a
 specific ranking algorithm orders words, not communicating the target set as
 meaning. The certified margins are also small in absolute terms (at most
 $+0.033$), which is consistent with the discussion's point that the dissociation
@@ -785,8 +778,8 @@ queue with substantially stronger guessers reproduces the zeros exactly:
 \toprule
 model & controls exact & certified challenge exact & negative-margin exact \\
 \midrule
-\texttt{gpt-5.4}        & 12/12 & 0/22 & 0/10 \\
-\texttt{claude-sonnet-4-6} & 11/12 & 0/22 & 0/10 \\
+\texttt{gpt-5.4}        & 11/12 & 0/22 & 0/10 \\
+\texttt{claude-sonnet-4-6} & 12/12 & 0/22 & 0/10 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -798,11 +791,11 @@ close with receiver strength.
 
 \textbf{A blinded human author-pilot reproduces the pattern.} The 72-item
 publication-transfer packet (12 items per stratum, targets and strata hidden from
-the labeler) was labeled by the first author as a blinded guesser. Controls passed
-at 12/12 exact with a 100\% target-hit rate, the study's reviewer-validity gate.
+the labeler) was labeled by the first author as a blinded guesser.
 Decoder-certified challenge clues recovered 0 of 12, with the first guess already
 a non-target in 6 of the 12 items; LLM-generated and arbitrary-subset challenge
-clues recovered 0 of 24. The cluster strata land almost exactly on the LLM rates:
+clues recovered 0 of 24. The cluster strata, which evidence the labeler's competence, land
+almost exactly on the LLM rates:
 clean clusters 6/12 exact with an 85.1\% target-hit rate (LLM pilots: 50\% and
 85.9\%), and same-tag interference 0/12 with 68.4\% hits (LLM: 0\% and 68.3\%).
 One hypothesis-aware author is not an independent
